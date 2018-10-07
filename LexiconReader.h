@@ -249,7 +249,7 @@ public:
                 if(isSeparator())
                 {
                     tokenType[index] = "separator";
-                    cout << "hi";
+                   
                 }
                 else
                 {
@@ -386,7 +386,7 @@ public:
                 
             }
             myfile.close();
-            for(int i = 0; i < index + 1; i++)
+            for(int i = 0; i < index; i++)
             {
  
                 cout << left << "{" << token[i]  << "} is a " <<  "["<<  tokenType[i]<< "]" << endl;
