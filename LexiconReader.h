@@ -87,7 +87,7 @@ public:
             addToLex(s);
             cSTATE = 1;
         }
-        if(isnumber(s))
+        if(isnumber(s))                 //number
         {
             addToLex(s);
             cSTATE = 2;
@@ -126,6 +126,8 @@ public:
         {
             // not a valid token
             cSTATE = 0;
+            tokenType[index] = "invalid token";
+            updateIndex();
             updateCurrentState(s);
          
         }
