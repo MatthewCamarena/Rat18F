@@ -136,7 +136,8 @@ public:
     {
         if(isalpha(s))
         {
-            cSTATE = 0;
+            addToLex(s);
+            cSTATE = 9;
             //not a valid token
             
         }
@@ -293,6 +294,35 @@ public:
         }
         else
             cSTATE = 7;
+    }
+    else if(lexSTATE == 9)
+    {
+        if(isalpha(s))
+        {
+            addToLex(s);
+        }
+        if(isnumber(s))
+        {
+            addToLex(s);
+        }
+        if(!isalnum(s))
+        {
+            // check ' ' or functions
+            if(s == ' ')
+            {
+                tokenType[index] = "invalid token";
+                cSTATE = 0;
+                updateIndex();
+            }
+            else
+            {
+                tokenType[index] = "invalid token";
+                updateIndex();
+                cSTATE = 0;
+                updateCurrentState(s);
+            }
+            
+        }
     }
             
     
