@@ -61,7 +61,7 @@ public:
             cout << "Completed" << endl;
         }
         else {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            cout << "ERROR: expected '$$' on line: " << tokenLineNum[currentIndex];
         }
     }
     
@@ -80,7 +80,7 @@ public:
         }
         else
         {
-            cout << "ERROR: Expected function or $$ on line: " <<tokenLineNum[currentIndex] << endl;
+            cout << "ERROR: Expected 'function' or '$$' on line: " <<tokenLineNum[currentIndex] << endl;
             errorHandler(1);
         }
     }
@@ -119,12 +119,12 @@ public:
             }
             else
             {
-                cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                cout << "ERROR: Expected '(' on line: " << tokenLineNum[currentIndex];
             }
         }
         else
         {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            cout << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex];
         }
         
     }
@@ -146,7 +146,7 @@ public:
         }
         else
         {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            cout << "ERROR: Expected an <identifier> or ')' on line: " << tokenLineNum[currentIndex];
         }
         
     }
@@ -185,7 +185,7 @@ public:
         }
         else
         {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            cout << "ERROR: Expected ':' on line: " << tokenLineNum[currentIndex];
         }
     }
     
@@ -213,7 +213,7 @@ public:
         }
         else
         {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            cout << "ERROR: Expected 'int', 'real' or 'boolean' on line: " << tokenLineNum[currentIndex];
         }
         currentIndex++;
         
@@ -236,11 +236,11 @@ public:
             }
             else
             {
-                cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                cout << "ERROR, expected '{' on line: " << tokenLineNum[currentIndex];
             }
         }
         else{
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            cout << "ERROR, expected '}' on line: " << tokenLineNum[currentIndex];
         }
     }
     
@@ -260,7 +260,7 @@ public:
         }
         else
         {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            cout << "ERROR: Expected 'int', 'real' or 'boolean' on line: " << tokenLineNum[currentIndex];
         }
     }
     
@@ -282,7 +282,7 @@ public:
         }
         else
         {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            cout << "ERROR: Expected ';' on line: " << tokenLineNum[currentIndex];
         }
     }
     
@@ -318,7 +318,7 @@ public:
         }
         else
         {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            cout << "ERROR: Expected an <identifier> on line: " << tokenLineNum[currentIndex];
         }
     }
     
@@ -373,7 +373,7 @@ public:
         }
         
         else {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            cout << "ERROR: expected <Statement> on line: " << tokenLineNum[currentIndex];
         }
         
     }
@@ -393,7 +393,7 @@ public:
             }
             
             else {
-                cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                cout << "ERROR: Expected '}' on line: " << tokenLineNum[currentIndex];
             }
         }
     }
@@ -417,17 +417,17 @@ public:
                 }
                 
                 else {
-                    cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                    cout << "ERROR: Expected ';' on line: " << tokenLineNum[currentIndex];
                 }
             }
             
             else {
-               cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                cout << "ERROR: Expected '=' on line: " << tokenLineNum[currentIndex];
             }
         }
         
         else {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            cout << "ERROR: Expected <identifier> on line: " << tokenLineNum[currentIndex];
         }
     }
     
@@ -456,19 +456,19 @@ public:
                             currentIndex++;
                         }
                         else {
-                            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                            cout << "ERROR: Expected 'endif' on line: " << tokenLineNum[currentIndex];
                         }
                     }
                     else {
-                        cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                        cout << "ERROR: Expected 'end if' or 'else' on line: " << tokenLineNum[currentIndex];
                     }
                 }
                 else {
-                    cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                    cout << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex];
                 }
             }
             else {
-                cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                cout << "ERROR: Expected '(' on line: " << tokenLineNum[currentIndex];
             }
             
         }
@@ -493,7 +493,7 @@ public:
                 currentIndex++;
             }
             else {
-                cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                cout << "ERROR: Expected ';' on line: " << tokenLineNum[currentIndex];
             }
         }
     }
@@ -501,34 +501,32 @@ public:
     void Print()
     {
         if (seeSyntax) {
-            cout << "\t<While> ::= while ( <Condition> )  <Statement>\n";
+            cout << "\t<Print> ::= put ( <Expression> );\n";
         }
         
-        if (token[currentIndex] == "while") {
-            
             currentIndex++;
             
             
             if (token[currentIndex] == "(") {
                 currentIndex++;
-                Condition();
+                Expression();
                 if (token[currentIndex] == ")") {
                     currentIndex++;
-                    Statement();
-                  
+                    
+                    if (token[currentIndex] == ";") {
+                        currentIndex++;
+                    }
+                    else {
+                        cout << "ERROR: expected ';' on line: "<<  tokenLineNum[currentIndex];
+                    }
                 }
                 else {
-                    cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                    cout << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex];
                 }
             }
             else {
-                cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                cout << "ERROR: Expected '(' on line: " << tokenLineNum[currentIndex];
             }
-        }
-        
-        else {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
-        }
     }
     
     void Scan()
@@ -550,16 +548,16 @@ public:
                     currentIndex++;
                 }
                 else {
-                    cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                    cout << "ERROR: Expected ';' on line: " << tokenLineNum[currentIndex];
                 }
             }
             else {
-                cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                cout << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex];
             }
         }
         
         else {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            cout << "ERROR: Expected '(' on line: " << tokenLineNum[currentIndex];
         }
     }
     
@@ -582,16 +580,16 @@ public:
                  
                 }
                 else {
-                    cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                    cout << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex];
                 }
             }
             else {
-                cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                cout << "ERROR: Expected '(' on line: " << tokenLineNum[currentIndex];
             }
         }
         
         else {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            cout << "ERROR: Expected '(' on line: " << tokenLineNum[currentIndex];
         }
     }
     
@@ -643,7 +641,7 @@ public:
             }
         }
         else {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            cout << "ERROR: Expected '==','>','<','^=','>=','<=' on line: " << tokenLineNum[currentIndex];
         }
         
         currentIndex++;
@@ -699,7 +697,7 @@ public:
         }
         else if(tokenType[currentIndex] == "identifer" || tokenType[currentIndex] == "keyword")
         {
-            cout << "ERROR expected a a token " << tokenLineNum[currentIndex];
+            cout << "ERROR expected a token on line: " << tokenLineNum[currentIndex];
         }
         else {
             Empty();
@@ -721,7 +719,7 @@ public:
             
         }
         else {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            cout << "ERROR: invalid input on line: " << tokenLineNum[currentIndex];
         }
     }
     
@@ -740,7 +738,7 @@ public:
             }
             
             else {
-                cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                cout << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex];
             }
         }
         else {
