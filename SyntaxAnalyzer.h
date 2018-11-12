@@ -113,6 +113,7 @@ public:
                 OptParaList();
                 if(token[currentIndex] == ")")
                 {
+                    currentIndex++;
                     OptDeclList();
                     Body();
                 }
@@ -668,6 +669,10 @@ public:
             Term();
             ExpressionPrime();
         }
+        else if(tokenType[currentIndex] == "identifer" || tokenType[currentIndex] == "keyword")
+        {
+            cout << "ERROR: expected a token on line: " << tokenLineNum[currentIndex];
+        }
         
         else {
             Empty();
@@ -697,7 +702,7 @@ public:
         }
         else if(tokenType[currentIndex] == "identifer" || tokenType[currentIndex] == "keyword")
         {
-            cout << "ERROR expected a token on line: " << tokenLineNum[currentIndex];
+            cout << "ERROR: expected a token on line: " << tokenLineNum[currentIndex];
         }
         else {
             Empty();
@@ -714,9 +719,9 @@ public:
             currentIndex++;
             Primary();
         }
-        else if (tokenType[currentIndex] == "identifier" || tokenType[currentIndex] == "keyword" )
+        else if (tokenType[currentIndex] == "identifier" || tokenType[currentIndex] == "keyword" || tokenType[currentIndex] == "integer" || tokenType[currentIndex] == "real" || tokenType[currentIndex] == "seperator" || tokenType[currentIndex] == "operator")
         {
-            
+            Primary();
         }
         else {
             cout << "ERROR: invalid input on line: " << tokenLineNum[currentIndex];
@@ -729,21 +734,63 @@ public:
             cout << "\t<Primary> ::= <Identifier> | <Integer> | <Identifier> ( <IDs> ) | ( <Expression> ) | <Real> | true | false" << endl;
         }
         
-        if (token[currentIndex] == "(") {
+        if(tokenType[currentIndex] == "identifier") {
+            currentIndex++;
+        
+            if (token[currentIndex] == "(") {
             currentIndex++;
             IDs();
             
+                if (token[currentIndex] == ")") {
+                    currentIndex++;
+                }
+            
+                else {
+                    cout << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex];
+                }
+            }
+            else {
+                Empty();
+            }
+        }
+        
+        else if (tokenType[currentIndex] == "integer") {
+            currentIndex++;
+        }
+        
+        else if (token[currentIndex] == "(") {
+            currentIndex++;
+            Expression();
+            
             if (token[currentIndex] == ")") {
                 currentIndex++;
+                
             }
-            
             else {
-                cout << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex];
+                cout << "ERROR: Expected ')' on line " << tokenLineNum[currentIndex];
             }
         }
-        else {
-            Empty();
+        
+        else if (tokenType[currentIndex] == "real") {
+            currentIndex++;
+            
         }
+        
+        else if (token[currentIndex] == "true") {
+            currentIndex++;
+            
+        }
+        
+        else if (token[currentIndex] == "false") {
+            currentIndex++;
+            
+        }
+        
+        else {
+            cout << "ERROR: missing '<Identifer>', 'Integer', '<Expression>', or '<Qualifier>' on line: " << tokenLineNum[currentIndex];
+        }
+        
+        
     }
     
     void Empty()
