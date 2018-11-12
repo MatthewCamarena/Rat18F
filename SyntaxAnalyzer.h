@@ -32,7 +32,7 @@ public:
     ~SyntaxAnalyzer()
     {
         //Deletes allocated memory for the arrays
-        
+  
         
     }
     
@@ -52,6 +52,17 @@ public:
         if(seeSyntax) {cout << "\t<Rat18F> ::= <Opt Function Definitions> $$ <Opt Declaration List> <Statement List> $$" << endl;}
         //First call optFunc
         OptFuncDef();
+        
+        if (token[currentIndex] == "$$") {
+            currentIndex++;
+            OptDeclList();
+            StatementList();
+            
+            cout << "Completed" << endl;
+        }
+        else {
+            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+        }
     }
     
     void OptFuncDef()
@@ -69,7 +80,7 @@ public:
         }
         else
         {
-            cout << "ERROR: Expected function or $$ on line: " << endl;
+            cout << "ERROR: Expected function or $$ on line: " <<tokenLineNum[currentIndex] << endl;
             errorHandler(1);
         }
     }
@@ -108,16 +119,16 @@ public:
             }
             else
             {
-                cout << "ERROR";
+                cout << "ERROR ON: " << tokenLineNum[currentIndex];
             }
         }
         else
         {
-            cout << "ERROR: ";
+            cout << "ERROR ON: " << tokenLineNum[currentIndex];
         }
         
     }
-    
+
     void OptParaList()
     {
         if(seeSyntax)
@@ -125,115 +136,536 @@ public:
             cout << "\t<Opt Parameter List> ::= <Parameter List> | <Empty>" << endl;
         }
         
+        if(tokenType[currentIndex] == "identifier") // there is a parameter in the function
+        {
+            ParaList();
+        }
+        else if (token[currentIndex] == ")")    // function can be empty
+        {
+            Empty();
+        }
+        else
+        {
+            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+        }
+        
     }
     
     void ParaList()
     {
+        if(seeSyntax)
+        {
+            cout << "\t<Parameter List> ::= <Parameter List> | <Empty>" << endl;
+        }
+        
+        if(tokenType[currentIndex] == "identifier")
+        {
+            Parameter();
+            if(token[currentIndex] == ",")
+            {
+                currentIndex++;
+                ParaList();
+            }
+        }
         
     }
     
     void Parameter()
     {
+        if(seeSyntax)
+        {
+            cout << "\t<Parameter> ::= <IDs> : <Qualifier>" << endl;
+        }
+        IDs();
         
+        if(token[currentIndex] == ":")
+        {
+            currentIndex++;
+            Qualifier();
+        }
+        else
+        {
+            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+        }
     }
     
     void Qualifier()
     {
+        if(seeSyntax)
+        {
+            cout << "\t<Qualifier> ::= int | boolean | real" << endl;
+        }
+        
+        if(token[currentIndex] == "int")
+        {
+            if(seeSyntax)
+            {
+                cout << "\t<Qualifier> ::= int" << endl;
+            }
+        }
+        else if (token[currentIndex] == "boolean")
+        {
+            cout << "\t<Qualifier> ::= boolean" << endl;
+        }
+        else if(token[currentIndex] == "real")
+        {
+            cout << "\t<Qualifier> ::= real" << endl;
+        }
+        else
+        {
+            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+        }
+        currentIndex++;
         
     }
     
     void Body()
     {
+        if(seeSyntax)
+        {
+            cout << "\t<Body> ::= { <Statement List> }" << endl;
+        }
         
+        if(token[currentIndex] == "{")
+        {
+            currentIndex++;
+            StatementList();
+            if(token[currentIndex] == "}")
+            {
+                currentIndex++;
+            }
+            else
+            {
+                cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            }
+        }
+        else{
+            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+        }
     }
     
     void OptDeclList()
     {
-        
+        if(seeSyntax)
+        {
+            cout << "\t<Opt Declaration List> ::= <Declaration List> | <Empty>" << endl;
+        }
+        if(token[currentIndex] == "{")
+        {
+            Empty();
+        }
+        else if(token[currentIndex] == "int" || token[currentIndex] == "boolean" || token[currentIndex] == "real")
+        {
+            DeclList();
+        }
+        else
+        {
+            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+        }
     }
     
     void DeclList()
     {
-        
+        if(seeSyntax)
+        {
+            cout << "\t<Declaration List> ::= <Declaration>; | <Declaration>;<Declaration List>" << endl;
+        }
+        Declaration();
+        if(token[currentIndex] == ";")
+        {
+            currentIndex++;
+            
+            if(token[currentIndex] == "int" || token[currentIndex] == "boolean" || token[currentIndex] == "real")
+            {
+                DeclList();
+            }
+        }
+        else
+        {
+            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+        }
     }
     
     void Declaration()
     {
+        if(seeSyntax)
+        {
+            cout << "\t<Declaration> ::= <Qualifier><IDs>" << endl;
+        }
         
+        Qualifier();
+        IDs();
     }
     
     void IDs()
     {
-        
+        if(tokenType[currentIndex] == "identifier" )
+        {
+            if(seeSyntax)
+            {
+                cout << "\t<IDs> ::= <Identifier> | <Identifier>,<IDs>" << endl;
+            }
+            currentIndex++;
+            if(token[currentIndex] == ",")
+            {
+                currentIndex++;
+                IDs();
+            }
+            else
+            {
+                Empty();
+            }
+        }
+        else
+        {
+            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+        }
     }
     
     void StatementList()
     {
+        if(seeSyntax)
+        {
+            cout << "\t<Statement List> ::= <Statement> | <Statement> <Statement List>" << endl;
+        }
         
+        //cout << "CURRENT TOKEN " << token[currentIndex] << " ";
+        
+        while(token[currentIndex] == "if" || token[currentIndex] == "put" || token[currentIndex] == "while" || token[currentIndex] == "return" || tokenType[currentIndex] == "identifier" || token[currentIndex] == "get")
+        {
+          // cout << "HELLO";
+            Statement();
+        }
         
     }
     
     void Statement()
     {
+        if(seeSyntax){
+            cout << "\t<Statement> ::= <Compound> | <Assign> | <If> | <Return> | <Print> | <Scan> | <While>" << endl;
+        }
+        if (token[currentIndex] == "{") {
+            Compound();
+        }
+        
+        else if (tokenType[currentIndex] == "Identifier") {
+            Assign();
+        }
+        
+        else if (token[currentIndex] == "if") {
+            If();
+        }
+        
+        else if (token[currentIndex] == "return") {
+            Return();
+        }
+        
+        else if (token[currentIndex] == "put") {
+            Print();
+        }
+        
+        else if (token[currentIndex] == "get") {
+            Scan();
+        }
+        
+        else if (token[currentIndex] == "while") {
+            While();
+        }
+        
+        else {
+            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+        }
         
     }
     
     void Compound()
     {
+        if (seeSyntax) {
+            cout << "\t<Compound> ::= { <Statement List> } \n ";
+        }
         
+        if (token[currentIndex] == "{") {
+            currentIndex++;
+            StatementList();
+            
+            if (token[currentIndex] == "}") {
+                currentIndex++;
+            }
+            
+            else {
+                cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            }
+        }
     }
     
     void Assign()
     {
+        if (seeSyntax) {
+            cout << "\t<Assign> ::= <Identifier> = <Expression>;\n";
+        }
         
+        if (tokenType[currentIndex] == "identifier") {
+            currentIndex++;
+            
+            if (token[currentIndex] == "=") {
+                currentIndex++;
+                Expression();
+
+                
+                if (token[currentIndex] == ";") {
+                    currentIndex++;
+                }
+                
+                else {
+                    cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                }
+            }
+            
+            else {
+               cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            }
+        }
+        
+        else {
+            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+        }
     }
     
     void If()
     {
+        if (seeSyntax) {
+            cout << "\t<If> ::= if ( <Condition> ) <Statement> endif | if ( <Condition> ) <Statement> else <Statement> endif\n";
+        }
         
+        if (token[currentIndex] == "if") {
+            currentIndex++;
+            if (token[currentIndex] == "(") {
+                currentIndex++;
+                Condition();
+                if (token[currentIndex] == ")") {
+                    currentIndex++;
+                    Statement();
+                    if (token[currentIndex] == "endif") {
+                        currentIndex++;
+                    }
+                    else if (token[currentIndex] == "else") {
+                        currentIndex++;
+                        Statement();
+                        
+                        if (token[currentIndex] == "endif") {
+                            currentIndex++;
+                        }
+                        else {
+                            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                        }
+                    }
+                    else {
+                        cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                    }
+                }
+                else {
+                    cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                }
+            }
+            else {
+                cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            }
+            
+        }
+
     }
     
     void Return()
     {
+        if (seeSyntax) {
+            cout << "\t<Return> ::= return; |  return <Expression>;\n";
+        }
         
+        currentIndex++;
+        
+        if (token[currentIndex] == ";") {
+            currentIndex++;
+        }
+        
+        else {
+            Expression();
+            if (token[currentIndex] == ";") {
+                currentIndex++;
+            }
+            else {
+                cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            }
+        }
     }
     
     void Print()
     {
+        if (seeSyntax) {
+            cout << "\t<While> ::= while ( <Condition> )  <Statement>\n";
+        }
         
+        if (token[currentIndex] == "while") {
+            
+            currentIndex++;
+            
+            
+            if (token[currentIndex] == "(") {
+                currentIndex++;
+                Condition();
+                if (token[currentIndex] == ")") {
+                    currentIndex++;
+                    Statement();
+                  
+                }
+                else {
+                    cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                }
+            }
+            else {
+                cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            }
+        }
+        
+        else {
+            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+        }
     }
     
     void Scan()
     {
+        if (seeSyntax) {
+            cout << "\t<Scan> ::= get ( <IDs> );\n";
+        }
         
+        currentIndex++;
+        
+        if (token[currentIndex] == "(") {
+            currentIndex++;
+            IDs();
+            
+            if (token[currentIndex] == ")") {
+                currentIndex++;
+                
+                if (token[currentIndex] == ";") {
+                    currentIndex++;
+                }
+                else {
+                    cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                }
+            }
+            else {
+                cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            }
+        }
+        
+        else {
+            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+        }
     }
     
     void While()
     {
+        if (seeSyntax) {
+            cout << "\t<While> ::= while ( <Condition> )  <Statement>\n";
+        }
         
+        if (token[currentIndex] == "while") {
+
+            currentIndex++;
+            
+            if (token[currentIndex] == "(") {
+                currentIndex++;
+                Condition();
+                if (token[currentIndex] == ")") {
+                    currentIndex++;
+                    Statement();
+                 
+                }
+                else {
+                    cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                }
+            }
+            else {
+                cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            }
+        }
+        
+        else {
+            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+        }
     }
     
     void Condition()
     {
+        if (seeSyntax) {
+            cout << "\t<Condition> ::= <Expression>  <Relop>  <Expression>\n";
+        }
         
+        Expression();
+        Relop();
+        Expression();
+        
+
+    
     }
     
     void Relop()
     {
+  
+        if (token[currentIndex] == "==") {
+            if (seeSyntax) {
+                cout << "\t<Relop> ::= ==" << endl;
+            }
+        }
+        else if (token[currentIndex] == "^=") {
+            if (seeSyntax) {
+                cout << "\t<Relop> ::= ^=" << endl;
+            }
+        }
+        else if (token[currentIndex] == ">") {
+            if (seeSyntax) {
+                cout << "\t<Relop> ::= >" << endl;
+            }
+        }
+        else if (token[currentIndex] == "<") {
+            if (seeSyntax) {
+                cout << "\t<Relop> ::= <" << endl;
+            }
+        }
+        else if (token[currentIndex] == ">=") {
+            if (seeSyntax) {
+                cout << "\t<Relop> ::= >=" << endl;
+            }
+        }
+        else if (token[currentIndex] == "<=") {
+            if (seeSyntax) {
+                cout << "\t<Relop> ::= <=" << endl;
+            }
+        }
+        else {
+            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+        }
         
+        currentIndex++;
     }
     
     void Expression()
     {
-        
-    }
-    
-    void ExpressionPrime() {
         if (seeSyntax) {
-            cout << "\t<ExpressionPrime> -> + <Term> <ExpressionPrime> | - <Term> <ExpressionPrime> | <Empty>   \n";
+            cout << "\t<Expression> ::= <Term> <ExpressionPrime>\n";
         }
         
-        if (currentToken.token == "+" || currentToken.token == "-") {
+        Term();
+        ExpressionPrime();
+    }
+    
+    void ExpressionPrime()
+    {
+        if (seeSyntax) {
+            cout << "\t<ExpressionPrime> ::= + <Term> <ExpressionPrime> | - <Term> <ExpressionPrime> | <Empty>" << endl;
+        }
+        
+        if (token[currentIndex] == "+" || token[currentIndex] == "-") {
             currentIndex++;
             Term();
             ExpressionPrime();
@@ -247,62 +679,68 @@ public:
     void Term()
     {
         if (seeSyntax) {
-            cout << "\t<Term> -> <Factor> <TermPrime>\n";
+            cout << "\t<Term> ::= <Factor> <TermPrime>" << endl;
         }
         
         Factor();
         TermPrime();
     }
     
-    void TermPrime() {
-        
+    void TermPrime()
+    {
         if (seeSyntax) {
-            cout << "\t<TermPrime> -> * <Factor> <TermPrime> | / <Factor> <TermPrime> | <Empty>\n";
+            cout << "\t<TermPrime> ::= * <Factor> <TermPrime> | / <Factor> <TermPrime> | <Empty>" << endl;
         }
         
         if (token[currentIndex] == "*" || token[currentIndex] == "/") {
-        currentIndex++;
-        Factor();
-        TermPrime();
+            currentIndex++;
+            Factor();
+            TermPrime();
         }
-            
+        else if(tokenType[currentIndex] == "identifer" || tokenType[currentIndex] == "keyword")
+        {
+            cout << "ERROR expected a a token " << tokenLineNum[currentIndex];
+        }
         else {
             Empty();
         }
     }
-            
     
     void Factor()
     {
         if (seeSyntax) {
-            cout << "\t<Factor> -> - <Primary> | <Primary>\n";
+            cout << "\t<Factor> ::= - <Primary> | <Primary>" << endl;
         }
-    
+        
         if (token[currentIndex] == "-") {
             currentIndex++;
             Primary();
         }
-    
+        else if (tokenType[currentIndex] == "identifier" || tokenType[currentIndex] == "keyword" )
+        {
+            
+        }
         else {
-            cout << "ERROR";
+            cout << "ERROR ON: " << tokenLineNum[currentIndex];
         }
     }
     
     void Primary()
     {
         if (seeSyntax) {
-            cout << "\t<Primary> -> <Identifier> | <Integer> | <Identifier> ( <IDs> ) | ( <Expression> ) | <Real> | true | false\n";
+            cout << "\t<Primary> ::= <Identifier> | <Integer> | <Identifier> ( <IDs> ) | ( <Expression> ) | <Real> | true | false" << endl;
         }
         
         if (token[currentIndex] == "(") {
             currentIndex++;
+            IDs();
             
             if (token[currentIndex] == ")") {
                 currentIndex++;
             }
             
             else {
-                cout << "ERROR";
+                cout << "ERROR ON: " << tokenLineNum[currentIndex];
             }
         }
         else {
