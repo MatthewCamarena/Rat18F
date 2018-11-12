@@ -719,11 +719,12 @@ public:
             currentIndex++;
             Primary();
         }
-        else if (tokenType[currentIndex] == "identifier" || tokenType[currentIndex] == "keyword" || tokenType[currentIndex] == "integer" || tokenType[currentIndex] == "real" || tokenType[currentIndex] == "seperator" || tokenType[currentIndex] == "operator")
+        else if (tokenType[currentIndex] == "identifier" || tokenType[currentIndex] == "keyword" || tokenType[currentIndex] == "integer" || tokenType[currentIndex] == "real" || tokenType[currentIndex] == "separator" || tokenType[currentIndex] == "operator")
         {
             Primary();
         }
         else {
+            cout << "this token is: ***" << token[currentIndex] << "***";
             cout << "ERROR: invalid input on line: " << tokenLineNum[currentIndex];
         }
     }
@@ -753,11 +754,9 @@ public:
                 Empty();
             }
         }
-        
         else if (tokenType[currentIndex] == "integer") {
             currentIndex++;
         }
-        
         else if (token[currentIndex] == "(") {
             currentIndex++;
             Expression();
@@ -789,8 +788,6 @@ public:
         else {
             cout << "ERROR: missing '<Identifer>', 'Integer', '<Expression>', or '<Qualifier>' on line: " << tokenLineNum[currentIndex];
         }
-        
-        
     }
     
     void Empty()
