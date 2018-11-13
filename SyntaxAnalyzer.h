@@ -590,7 +590,7 @@ public:
     void While()
     {
         if (seeSyntax) {
-            cout << "\t<While> ::= while ( <Condition> )  <Statement>\n";
+            cout << "\t<While> ::= while ( <Condition> )  <Statement> whileend\n";
         }
         
         if (token[currentIndex] == "while") {
@@ -605,6 +605,11 @@ public:
                     Statement();
                     if (token[currentIndex] == "whileend") {
                         currentIndex++;
+                    }
+                    else
+                    {
+                        cout << "ERROR: Expected 'whileend' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                        exit(1);
                     }
                 }
                 else {
@@ -640,6 +645,9 @@ public:
     
     void Relop()
     {
+        if(seeSyntax) {
+            cout << "\t<Relop> ::= == | ^= | > | < | => | =<";
+        }
   
         if (token[currentIndex] == "==") {
             if (seeSyntax) {
@@ -661,18 +669,18 @@ public:
                 cout << "\t<Relop> ::= <" << endl;
             }
         }
-        else if (token[currentIndex] == ">=") {
+        else if (token[currentIndex] == "=>") {
             if (seeSyntax) {
-                cout << "\t<Relop> ::= >=" << endl;
+                cout << "\t<Relop> ::= =>" << endl;
             }
         }
-        else if (token[currentIndex] == "<=") {
+        else if (token[currentIndex] == "=<") {
             if (seeSyntax) {
-                cout << "\t<Relop> ::= <=" << endl;
+                cout << "\t<Relop> ::= =<" << endl;
             }
         }
         else {
-            cout << "ERROR: Expected '==','>','<','^=','>=','<=' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            cout << "ERROR: Expected '==','>','<','^=','=>','=<' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
             exit(1);
         }
         
