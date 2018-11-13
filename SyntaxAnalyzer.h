@@ -358,7 +358,7 @@ public:
             Compound();
         }
         
-        else if (tokenType[currentIndex] == "Identifier") {
+        else if (tokenType[currentIndex] == "identifier") {
             Assign();
         }
         
@@ -449,7 +449,7 @@ public:
     void If()
     {
         if (seeSyntax) {
-            cout << "\t<If> ::= if ( <Condition> ) <Statement> endif | if ( <Condition> ) <Statement> else <Statement> endif\n";
+            cout << "\t<If> ::= if ( <Condition> ) <Statement> ifend | if ( <Condition> ) <Statement> else <Statement> ifend\n";
         }
         
         if (token[currentIndex] == "if") {
@@ -460,18 +460,18 @@ public:
                 if (token[currentIndex] == ")") {
                     currentIndex++;
                     Statement();
-                    if (token[currentIndex] == "endif") {
+                    if (token[currentIndex] == "ifend") {
                         currentIndex++;
                     }
                     else if (token[currentIndex] == "else") {
                         currentIndex++;
                         Statement();
                         
-                        if (token[currentIndex] == "endif") {
+                        if (token[currentIndex] == "ifend") {
                             currentIndex++;
                         }
                         else {
-                            cout << "ERROR: Expected 'endif' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                            cout << "ERROR: Expected 'ifend' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
                             exit(1);
                         }
                     }
@@ -491,7 +491,7 @@ public:
             }
             
         }
-
+        
     }
     
     void Return()
@@ -603,7 +603,9 @@ public:
                 if (token[currentIndex] == ")") {
                     currentIndex++;
                     Statement();
-                 
+                    if (token[currentIndex] == "whileend") {
+                        currentIndex++;
+                    }
                 }
                 else {
                     cout << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
