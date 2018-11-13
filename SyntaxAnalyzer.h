@@ -14,6 +14,7 @@
 #include <cstring>
 #include <stdexcept>
 #include <vector>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -61,7 +62,8 @@ public:
             cout << "Completed" << endl;
         }
         else {
-            cout << "ERROR: expected '$$' on line: " << tokenLineNum[currentIndex];
+            cout << "ERROR: expected '$$' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
     }
     
@@ -80,8 +82,8 @@ public:
         }
         else
         {
-            cout << "ERROR: Expected 'function' or '$$' on line: " <<tokenLineNum[currentIndex] << endl;
-            errorHandler(1);
+            cout << "ERROR: Expected 'function' or '$$' on line: " <<tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
     }
     
@@ -120,12 +122,14 @@ public:
             }
             else
             {
-                cout << "ERROR: Expected '(' on line: " << tokenLineNum[currentIndex];
+                cout << "ERROR: Expected '(' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                exit(1);
             }
         }
         else
         {
-            cout << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex];
+            cout << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
         
     }
@@ -147,7 +151,8 @@ public:
         }
         else
         {
-            cout << "ERROR: Expected an <identifier> or ')' on line: " << tokenLineNum[currentIndex];
+            cout << "ERROR: Expected an <identifier> or ')' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
         
     }
@@ -186,7 +191,8 @@ public:
         }
         else
         {
-            cout << "ERROR: Expected ':' on line: " << tokenLineNum[currentIndex];
+            cout << "ERROR: Expected ':' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
     }
     
@@ -214,7 +220,8 @@ public:
         }
         else
         {
-            cout << "ERROR: Expected 'int', 'real' or 'boolean' on line: " << tokenLineNum[currentIndex];
+            cout << "ERROR: Expected 'int', 'real' or 'boolean' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
         currentIndex++;
         
@@ -237,11 +244,13 @@ public:
             }
             else
             {
-                cout << "ERROR, expected '{' on line: " << tokenLineNum[currentIndex];
+                cout << "ERROR, expected '{' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                exit(1);
             }
         }
         else{
-            cout << "ERROR, expected '}' on line: " << tokenLineNum[currentIndex];
+            cout << "ERROR, expected '}' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
     }
     
@@ -261,7 +270,8 @@ public:
         }
         else
         {
-            cout << "ERROR: Expected 'int', 'real' or 'boolean' on line: " << tokenLineNum[currentIndex];
+            cout << "ERROR: Expected 'int', 'real' or 'boolean' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
     }
     
@@ -283,7 +293,8 @@ public:
         }
         else
         {
-            cout << "ERROR: Expected ';' on line: " << tokenLineNum[currentIndex];
+            cout << "ERROR: Expected ';' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
     }
     
@@ -319,7 +330,8 @@ public:
         }
         else
         {
-            cout << "ERROR: Expected an <identifier> on line: " << tokenLineNum[currentIndex];
+            cout << "ERROR: Expected an <identifier> on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
     }
     
@@ -330,11 +342,8 @@ public:
             cout << "\t<Statement List> ::= <Statement> | <Statement> <Statement List>" << endl;
         }
         
-        //cout << "CURRENT TOKEN " << token[currentIndex] << " ";
-        
         while(token[currentIndex] == "if" || token[currentIndex] == "put" || token[currentIndex] == "while" || token[currentIndex] == "return" || tokenType[currentIndex] == "identifier" || token[currentIndex] == "get")
         {
-          // cout << "HELLO";
             Statement();
         }
         
@@ -374,7 +383,8 @@ public:
         }
         
         else {
-            cout << "ERROR: expected <Statement> on line: " << tokenLineNum[currentIndex];
+            cout << "ERROR: expected <Statement> on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
         
     }
@@ -394,7 +404,8 @@ public:
             }
             
             else {
-                cout << "ERROR: Expected '}' on line: " << tokenLineNum[currentIndex];
+                cout << "ERROR: Expected '}' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                exit(1);
             }
         }
     }
@@ -418,17 +429,20 @@ public:
                 }
                 
                 else {
-                    cout << "ERROR: Expected ';' on line: " << tokenLineNum[currentIndex];
+                    cout << "ERROR: Expected ';' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                    exit(1);
                 }
             }
             
             else {
-                cout << "ERROR: Expected '=' on line: " << tokenLineNum[currentIndex];
+                cout << "ERROR: Expected '=' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                exit(1);
             }
         }
         
         else {
-            cout << "ERROR: Expected <identifier> on line: " << tokenLineNum[currentIndex];
+            cout << "ERROR: Expected <identifier> on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
     }
     
@@ -457,19 +471,23 @@ public:
                             currentIndex++;
                         }
                         else {
-                            cout << "ERROR: Expected 'endif' on line: " << tokenLineNum[currentIndex];
+                            cout << "ERROR: Expected 'endif' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                            exit(1);
                         }
                     }
                     else {
-                        cout << "ERROR: Expected 'end if' or 'else' on line: " << tokenLineNum[currentIndex];
+                        cout << "ERROR: Expected 'end if' or 'else' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                        exit(1);
                     }
                 }
                 else {
-                    cout << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex];
+                    cout << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                    exit(1);
                 }
             }
             else {
-                cout << "ERROR: Expected '(' on line: " << tokenLineNum[currentIndex];
+                cout << "ERROR: Expected '(' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                exit(1);
             }
             
         }
@@ -494,7 +512,8 @@ public:
                 currentIndex++;
             }
             else {
-                cout << "ERROR: Expected ';' on line: " << tokenLineNum[currentIndex];
+                cout << "ERROR: Expected ';' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                exit(1);
             }
         }
     }
@@ -518,15 +537,18 @@ public:
                         currentIndex++;
                     }
                     else {
-                        cout << "ERROR: expected ';' on line: "<<  tokenLineNum[currentIndex];
+                        cout << "ERROR: expected ';' on line: "<<  tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                        exit(1);
                     }
                 }
                 else {
-                    cout << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex];
+                    cout << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                    exit(1);
                 }
             }
             else {
-                cout << "ERROR: Expected '(' on line: " << tokenLineNum[currentIndex];
+                cout << "ERROR: Expected '(' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                exit(1);
             }
     }
     
@@ -549,16 +571,19 @@ public:
                     currentIndex++;
                 }
                 else {
-                    cout << "ERROR: Expected ';' on line: " << tokenLineNum[currentIndex];
+                    cout << "ERROR: Expected ';' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                    exit(1);
                 }
             }
             else {
-                cout << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex];
+                cout << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                exit(1);
             }
         }
         
         else {
-            cout << "ERROR: Expected '(' on line: " << tokenLineNum[currentIndex];
+            cout << "ERROR: Expected '(' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
     }
     
@@ -581,16 +606,19 @@ public:
                  
                 }
                 else {
-                    cout << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex];
+                    cout << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                    exit(1);
                 }
             }
             else {
-                cout << "ERROR: Expected '(' on line: " << tokenLineNum[currentIndex];
+                cout << "ERROR: Expected '(' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                exit(1);
             }
         }
         
         else {
-            cout << "ERROR: Expected '(' on line: " << tokenLineNum[currentIndex];
+            cout << "ERROR: Expected '(' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
     }
     
@@ -642,7 +670,8 @@ public:
             }
         }
         else {
-            cout << "ERROR: Expected '==','>','<','^=','>=','<=' on line: " << tokenLineNum[currentIndex];
+            cout << "ERROR: Expected '==','>','<','^=','>=','<=' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
         
         currentIndex++;
@@ -671,7 +700,8 @@ public:
         }
         else if(tokenType[currentIndex] == "identifer" || tokenType[currentIndex] == "keyword")
         {
-            cout << "ERROR: expected a token on line: " << tokenLineNum[currentIndex];
+            cout << "ERROR: expected a token on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
         
         else {
@@ -702,7 +732,8 @@ public:
         }
         else if(tokenType[currentIndex] == "identifer" || tokenType[currentIndex] == "keyword")
         {
-            cout << "ERROR: expected a token on line: " << tokenLineNum[currentIndex];
+            cout << "ERROR: expected a token on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
         else {
             Empty();
@@ -724,8 +755,8 @@ public:
             Primary();
         }
         else {
-            cout << "this token is: ***" << token[currentIndex] << "***";
-            cout << "ERROR: invalid input on line: " << tokenLineNum[currentIndex];
+            cout << "ERROR: invalid input on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
     }
     
@@ -747,7 +778,8 @@ public:
                 }
             
                 else {
-                    cout << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex];
+                    cout << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                    exit(1);
                 }
             }
             else {
@@ -766,7 +798,8 @@ public:
                 
             }
             else {
-                cout << "ERROR: Expected ')' on line " << tokenLineNum[currentIndex];
+                cout << "ERROR: Expected ')' on line " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                exit(1);
             }
         }
         
@@ -786,7 +819,8 @@ public:
         }
         
         else {
-            cout << "ERROR: missing '<Identifer>', 'Integer', '<Expression>', or '<Qualifier>' on line: " << tokenLineNum[currentIndex];
+            cout << "ERROR: missing '<Identifer>', 'Integer', '<Expression>', or '<Qualifier>' on line: " << tokenLineNum[currentIndex] << "Token: " << token[currentIndex] << "Lexeme: " << tokenType[currentIndex];
+            exit(1);
         }
     }
     
