@@ -48,7 +48,7 @@ public:
         token = LR.getTokens();
         tokenType = LR.getTokenType();
         tokenLineNum = LR.getTokenLineNum();
-        myfile.open ("SynaxOutput.txt");
+        myfile.open ("SyntaxOutput.txt");
         Rat18F();   //first rule of production
         myfile.close();
     }
@@ -211,7 +211,7 @@ public:
             myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Qualifier> ::= int | boolean | real" << endl;
         }
         
-        if(token[currentIndex] == "int")
+        if(token[currentIndex] == "int") //see what the Qualifier is
         {
             if(seeSyntax)
             {
@@ -484,7 +484,7 @@ public:
                         }
                     }
                     else {
-                        myfile << "ERROR: Expected 'end if' or 'else' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                        myfile << "ERROR: Expected 'ifend' or 'else' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
                         exit(1);
                     }
                 }
