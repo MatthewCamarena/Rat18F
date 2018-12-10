@@ -15,8 +15,12 @@
 #include <stdexcept>
 #include <vector>
 #include <stdlib.h>
+#include "InstructionTable.h"
 
 ofstream myfile;
+InstructionTable instrTable[1000]; // creates instruction table
+int instrAddress = 0; // index for instrTable
+int addr = 0; // global
 
 using namespace std;
 
@@ -461,6 +465,7 @@ public:
         }
         
         if (token[currentIndex] == "if") {
+            addr = instrAddress;
             currentIndex++;
             if (token[currentIndex] == "(") {
                 currentIndex++;
@@ -468,6 +473,7 @@ public:
                 if (token[currentIndex] == ")") {
                     currentIndex++;
                     Statement();
+                    back_patch(instrAddress);
                     if (token[currentIndex] == "ifend") {
                         currentIndex++;
                     }
@@ -602,7 +608,9 @@ public:
         }
         
         if (token[currentIndex] == "while") {
-
+            
+            addr = instrAddress;
+            gen_instr("LABEL", NULL);
             currentIndex++;
             
             if (token[currentIndex] == "(") {
@@ -611,6 +619,8 @@ public:
                 if (token[currentIndex] == ")") {
                     currentIndex++;
                     Statement();
+                    gen_instr("JUMP", addr);
+                    back_patch(instrAddress);
                     if (token[currentIndex] == "whileend") {
                         currentIndex++;
                     }
@@ -661,36 +671,45 @@ public:
             if (seeSyntax) {
                 myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Relop> ::= ==" << endl;
             }
+            gen_instr("EQU", NULL);
         }
         else if (token[currentIndex] == "^=") {
             if (seeSyntax) {
                 myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Relop> ::= ^=" << endl;
             }
+            gen_instr("NEQ", NULL);
         }
         else if (token[currentIndex] == ">") {
             if (seeSyntax) {
                 myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Relop> ::= >" << endl;
             }
+            gen_instr("GRE", NULL);
         }
         else if (token[currentIndex] == "<") {
             if (seeSyntax) {
                 myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Relop> ::= <" << endl;
             }
+            gen_instr("LES", NULL);
         }
         else if (token[currentIndex] == "=>") {
             if (seeSyntax) {
                 myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Relop> ::= =>" << endl;
             }
+            gen_instr("GEQ", NULL);
         }
         else if (token[currentIndex] == "=<") {
             if (seeSyntax) {
                 myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Relop> ::= =<" << endl;
             }
+            gen_instr("LEQ", NULL);
         }
         else {
             myfile << "ERROR: Expected '==','>','<','^=','=>','=<' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
             exit(1);
         }
+        
+        //push_jumpstack(instrAddress);
+        gen_instr("JUMPZ", NULL);
         
         currentIndex++;
     }
@@ -711,7 +730,13 @@ public:
             myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<ExpressionPrime> ::= + <Term> <ExpressionPrime> | - <Term> <ExpressionPrime> | <Empty>" << endl;
         }
         
-        if (token[currentIndex] == "+" || token[currentIndex] == "-") {
+        if (token[currentIndex] == "+") {
+            currentIndex++;
+            Term();
+            gen_instr("ADD", NULL);
+            ExpressionPrime();
+        }
+        else if (token[currentIndex] == "-") {
             currentIndex++;
             Term();
             ExpressionPrime();
@@ -743,7 +768,13 @@ public:
             myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<TermPrime> ::= * <Factor> <TermPrime> | / <Factor> <TermPrime> | <Empty>" << endl;
         }
         
-        if (token[currentIndex] == "*" || token[currentIndex] == "/") {
+        if (token[currentIndex] == "*") {
+            currentIndex++;
+            Factor();
+            gen_instr("MUL", NULL);
+            TermPrime();
+        }
+        else if(token[currentIndex] == "/") {
             currentIndex++;
             Factor();
             TermPrime();
@@ -768,7 +799,10 @@ public:
             currentIndex++;
             Primary();
         }
-        else if (tokenType[currentIndex] == "identifier" || tokenType[currentIndex] == "keyword" || tokenType[currentIndex] == "integer" || tokenType[currentIndex] == "real" || tokenType[currentIndex] == "separator" || tokenType[currentIndex] == "operator")
+        else if (tokenType[currentIndex] == "identifier") {
+            
+        }
+        else if (tokenType[currentIndex] == "keyword" || tokenType[currentIndex] == "integer" || tokenType[currentIndex] == "real" || tokenType[currentIndex] == "separator" || tokenType[currentIndex] == "operator")
         {
             Primary();
         }
@@ -852,6 +886,18 @@ public:
         
     }
     
+    void gen_instr(string op, int operand) {  //create instruction for instruction table
+        instrTable[instrAddress].address = instrAddress;
+        instrTable[instrAddress].operand = operand;
+        instrTable[instrAddress].op = op;
+        instrAddress++;
+        };
+    
+    void back_patch(int jump_addr) {
+       // addr = pop_jumpstack();
+        instrTable[instrAddress].operand = jump_addr;
+    }
+        
     
     
 private:
