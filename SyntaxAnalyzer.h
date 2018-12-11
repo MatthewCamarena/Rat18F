@@ -14,10 +14,24 @@
 #include <cstring>
 #include <stdexcept>
 #include <vector>
+#include <stdlib.h>
+#include "InstructionTable.h"
+#include <stack>
+
+ofstream myfile;
+InstructionTable instrTable[1000]; // creates instruction table
+int instrAddress = 0; // index for instrTable
+int addr = 0; // global
+int memAddr = 5000;
+stack <int> jumpstack;
+
+string symbolTable[1000];
+
 
 using namespace std;
 
 class SyntaxAnalyzer
+
 {
 public:
     // default constructor
@@ -26,13 +40,14 @@ public:
         seeSyntax = true;
         currentIndex = 0;
         state = 0;
+        symbCount = 0;
     }
     
     // destructor
     ~SyntaxAnalyzer()
     {
         //Deletes allocated memory for the arrays
-  
+        
         
     }
     
@@ -44,12 +59,17 @@ public:
         token = LR.getTokens();
         tokenType = LR.getTokenType();
         tokenLineNum = LR.getTokenLineNum();
+        myfile.open ("SyntaxOutput.txt");
         Rat18F();   //first rule of production
+        myfile.close();
     }
     
     void Rat18F()
     {
-        if(seeSyntax) {cout << "\t<Rat18F> ::= <Opt Function Definitions> $$ <Opt Declaration List> <Statement List> $$" << endl;}
+        if(seeSyntax) {
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Rat18F> ::= <Opt Function Definitions> $$ <Opt Declaration List> <Statement List> $$" << endl;
+        }
+        
         //First call optFunc
         OptFuncDef();
         
@@ -58,16 +78,18 @@ public:
             OptDeclList();
             StatementList();
             
-            cout << "Completed" << endl;
+            myfile << "Completed" << endl;
+            cout << endl << " HELLO "<< instrTable[instrAddress-1].op << endl;
         }
         else {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            myfile << "ERROR: expected '$$' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
     }
     
     void OptFuncDef()
     {
-        if(seeSyntax) { cout << "\t<Opt Function Definitions> ::= <Function Definitions> | <Empty>" << endl;}
+        if(seeSyntax) { myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Opt Function Definitions> ::= <Function Definitions> | <Empty>" << endl;}
         
         //check to see if first token name is called function
         if(token[currentIndex] == "function")
@@ -80,8 +102,8 @@ public:
         }
         else
         {
-            cout << "ERROR: Expected function or $$ on line: " <<tokenLineNum[currentIndex] << endl;
-            errorHandler(1);
+            myfile << "ERROR: Expected 'function' or '$$' on line: " <<tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
     }
     
@@ -89,7 +111,7 @@ public:
     {
         if(seeSyntax)
         {
-            cout << "\t<Function Definitions> ::= <Function> | <Function><Function Definitions>" << endl;
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Function Definitions> ::= <Function> | <Function><Function Definitions>" << endl;
         }
         // Keep calling while the next one is  a function to register all functions before main
         while(token[currentIndex] == "function") Function();
@@ -99,7 +121,7 @@ public:
     {
         if(seeSyntax)
         {
-            cout << "\t<Function> ::= function <Identifier> ( <Opt Parameter List> ) <Opt Declaration List> <Body>" << endl;
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Function> ::= function <Identifier> ( <Opt Parameter List> ) <Opt Declaration List> <Body>" << endl;
         }
         
         currentIndex++; // Move on to the next token
@@ -113,27 +135,30 @@ public:
                 OptParaList();
                 if(token[currentIndex] == ")")
                 {
+                    currentIndex++;
                     OptDeclList();
                     Body();
                 }
             }
             else
             {
-                cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                myfile << "ERROR: Expected '(' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                exit(1);
             }
         }
         else
         {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            myfile << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
         
     }
-
+    
     void OptParaList()
     {
         if(seeSyntax)
         {
-            cout << "\t<Opt Parameter List> ::= <Parameter List> | <Empty>" << endl;
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Opt Parameter List> ::= <Parameter List> | <Empty>" << endl;
         }
         
         if(tokenType[currentIndex] == "identifier") // there is a parameter in the function
@@ -146,7 +171,8 @@ public:
         }
         else
         {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            myfile << "ERROR: Expected an <identifier> or ')' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
         
     }
@@ -155,7 +181,7 @@ public:
     {
         if(seeSyntax)
         {
-            cout << "\t<Parameter List> ::= <Parameter List> | <Empty>" << endl;
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Parameter List> ::= <Parameter List> | <Empty>" << endl;
         }
         
         if(tokenType[currentIndex] == "identifier")
@@ -174,7 +200,7 @@ public:
     {
         if(seeSyntax)
         {
-            cout << "\t<Parameter> ::= <IDs> : <Qualifier>" << endl;
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Parameter> ::= <IDs> : <Qualifier>" << endl;
         }
         IDs();
         
@@ -185,7 +211,8 @@ public:
         }
         else
         {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            myfile << "ERROR: Expected ':' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
     }
     
@@ -193,27 +220,28 @@ public:
     {
         if(seeSyntax)
         {
-            cout << "\t<Qualifier> ::= int | boolean | real" << endl;
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Qualifier> ::= int | boolean | real" << endl;
         }
         
-        if(token[currentIndex] == "int")
+        if(token[currentIndex] == "int") //see what the Qualifier is
         {
             if(seeSyntax)
             {
-                cout << "\t<Qualifier> ::= int" << endl;
+                myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Qualifier> ::= int" << endl;
             }
         }
         else if (token[currentIndex] == "boolean")
         {
-            cout << "\t<Qualifier> ::= boolean" << endl;
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Qualifier> ::= boolean" << endl;
         }
         else if(token[currentIndex] == "real")
         {
-            cout << "\t<Qualifier> ::= real" << endl;
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Qualifier> ::= real" << endl;
         }
         else
         {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            myfile << "ERROR: Expected 'int', 'real' or 'boolean' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
         currentIndex++;
         
@@ -223,7 +251,7 @@ public:
     {
         if(seeSyntax)
         {
-            cout << "\t<Body> ::= { <Statement List> }" << endl;
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Body> ::= { <Statement List> }" << endl;
         }
         
         if(token[currentIndex] == "{")
@@ -236,11 +264,13 @@ public:
             }
             else
             {
-                cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                myfile << "ERROR, expected '{' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                exit(1);
             }
         }
         else{
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            myfile << "ERROR, expected '}' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
     }
     
@@ -248,7 +278,7 @@ public:
     {
         if(seeSyntax)
         {
-            cout << "\t<Opt Declaration List> ::= <Declaration List> | <Empty>" << endl;
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Opt Declaration List> ::= <Declaration List> | <Empty>" << endl;
         }
         if(token[currentIndex] == "{")
         {
@@ -260,7 +290,8 @@ public:
         }
         else
         {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            myfile << "ERROR: Expected 'int', 'real' or 'boolean' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
     }
     
@@ -268,7 +299,7 @@ public:
     {
         if(seeSyntax)
         {
-            cout << "\t<Declaration List> ::= <Declaration>; | <Declaration>;<Declaration List>" << endl;
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Declaration List> ::= <Declaration>; | <Declaration>;<Declaration List>" << endl;
         }
         Declaration();
         if(token[currentIndex] == ";")
@@ -282,7 +313,8 @@ public:
         }
         else
         {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            myfile << "ERROR: Expected ';' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
     }
     
@@ -290,7 +322,7 @@ public:
     {
         if(seeSyntax)
         {
-            cout << "\t<Declaration> ::= <Qualifier><IDs>" << endl;
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Declaration> ::= <Qualifier><IDs>" << endl;
         }
         
         Qualifier();
@@ -303,8 +335,17 @@ public:
         {
             if(seeSyntax)
             {
-                cout << "\t<IDs> ::= <Identifier> | <Identifier>,<IDs>" << endl;
+                myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<IDs> ::= <Identifier> | <Identifier>,<IDs>" << endl;
             }
+            
+            symbolTable[symbCount] = token[currentIndex];
+            symbCount++;
+            
+            
+            
+            
+            
+            
             currentIndex++;
             if(token[currentIndex] == ",")
             {
@@ -318,7 +359,8 @@ public:
         }
         else
         {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            myfile << "ERROR: Expected an <identifier> on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
     }
     
@@ -326,14 +368,11 @@ public:
     {
         if(seeSyntax)
         {
-            cout << "\t<Statement List> ::= <Statement> | <Statement> <Statement List>" << endl;
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Statement List> ::= <Statement> | <Statement> <Statement List>" << endl;
         }
-        
-        //cout << "CURRENT TOKEN " << token[currentIndex] << " ";
         
         while(token[currentIndex] == "if" || token[currentIndex] == "put" || token[currentIndex] == "while" || token[currentIndex] == "return" || tokenType[currentIndex] == "identifier" || token[currentIndex] == "get")
         {
-          // cout << "HELLO";
             Statement();
         }
         
@@ -342,13 +381,13 @@ public:
     void Statement()
     {
         if(seeSyntax){
-            cout << "\t<Statement> ::= <Compound> | <Assign> | <If> | <Return> | <Print> | <Scan> | <While>" << endl;
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Statement> ::= <Compound> | <Assign> | <If> | <Return> | <Print> | <Scan> | <While>" << endl;
         }
         if (token[currentIndex] == "{") {
             Compound();
         }
         
-        else if (tokenType[currentIndex] == "Identifier") {
+        else if (tokenType[currentIndex] == "identifier") {
             Assign();
         }
         
@@ -373,7 +412,8 @@ public:
         }
         
         else {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            myfile << "ERROR: expected <Statement> on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
         
     }
@@ -381,7 +421,7 @@ public:
     void Compound()
     {
         if (seeSyntax) {
-            cout << "\t<Compound> ::= { <Statement List> } \n ";
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Compound> ::= { <Statement List> } \n ";
         }
         
         if (token[currentIndex] == "{") {
@@ -393,7 +433,8 @@ public:
             }
             
             else {
-                cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                myfile << "ERROR: Expected '}' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                exit(1);
             }
         }
     }
@@ -401,7 +442,7 @@ public:
     void Assign()
     {
         if (seeSyntax) {
-            cout << "\t<Assign> ::= <Identifier> = <Expression>;\n";
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Assign> ::= <Identifier> = <Expression>;\n";
         }
         
         if (tokenType[currentIndex] == "identifier") {
@@ -410,34 +451,40 @@ public:
             if (token[currentIndex] == "=") {
                 currentIndex++;
                 Expression();
-
+                
+                gen_instr("POPM", get_addr(token[currentIndex-1]));
+                
                 
                 if (token[currentIndex] == ";") {
                     currentIndex++;
                 }
                 
                 else {
-                    cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                    myfile << "ERROR: Expected ';' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                    exit(1);
                 }
             }
             
             else {
-               cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                myfile << "ERROR: Expected '=' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                exit(1);
             }
         }
         
         else {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            myfile << "ERROR: Expected <identifier> on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
     }
     
     void If()
     {
         if (seeSyntax) {
-            cout << "\t<If> ::= if ( <Condition> ) <Statement> endif | if ( <Condition> ) <Statement> else <Statement> endif\n";
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<If> ::= if ( <Condition> ) <Statement> ifend | if ( <Condition> ) <Statement> else <Statement> ifend\n";
         }
         
         if (token[currentIndex] == "if") {
+            addr = instrAddress;
             currentIndex++;
             if (token[currentIndex] == "(") {
                 currentIndex++;
@@ -445,40 +492,45 @@ public:
                 if (token[currentIndex] == ")") {
                     currentIndex++;
                     Statement();
-                    if (token[currentIndex] == "endif") {
+                    back_patch(instrAddress);
+                    if (token[currentIndex] == "ifend") {
                         currentIndex++;
                     }
                     else if (token[currentIndex] == "else") {
                         currentIndex++;
                         Statement();
                         
-                        if (token[currentIndex] == "endif") {
+                        if (token[currentIndex] == "ifend") {
                             currentIndex++;
                         }
                         else {
-                            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                            myfile << "ERROR: Expected 'ifend' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                            exit(1);
                         }
                     }
                     else {
-                        cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                        myfile << "ERROR: Expected 'ifend' or 'else' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                        exit(1);
                     }
                 }
                 else {
-                    cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                    myfile << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                    exit(1);
                 }
             }
             else {
-                cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                myfile << "ERROR: Expected '(' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                exit(1);
             }
             
         }
-
+        
     }
     
     void Return()
     {
         if (seeSyntax) {
-            cout << "\t<Return> ::= return; |  return <Expression>;\n";
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Return> ::= return; |  return <Expression>;\n";
         }
         
         currentIndex++;
@@ -493,7 +545,8 @@ public:
                 currentIndex++;
             }
             else {
-                cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                myfile << "ERROR: Expected ';' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                exit(1);
             }
         }
     }
@@ -501,40 +554,41 @@ public:
     void Print()
     {
         if (seeSyntax) {
-            cout << "\t<While> ::= while ( <Condition> )  <Statement>\n";
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Print> ::= put ( <Expression> );\n";
         }
         
-        if (token[currentIndex] == "while") {
-            
+        currentIndex++;
+        
+        
+        if (token[currentIndex] == "(") {
             currentIndex++;
-            
-            
-            if (token[currentIndex] == "(") {
+            Expression();
+            if (token[currentIndex] == ")") {
                 currentIndex++;
-                Condition();
-                if (token[currentIndex] == ")") {
+                
+                if (token[currentIndex] == ";") {
                     currentIndex++;
-                    Statement();
-                  
                 }
                 else {
-                    cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                    myfile << "ERROR: expected ';' on line: "<<  tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                    exit(1);
                 }
             }
             else {
-                cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                myfile << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                exit(1);
             }
         }
-        
         else {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            myfile << "ERROR: Expected '(' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
     }
     
     void Scan()
     {
         if (seeSyntax) {
-            cout << "\t<Scan> ::= get ( <IDs> );\n";
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Scan> ::= get ( <IDs> );\n";
         }
         
         currentIndex++;
@@ -550,27 +604,32 @@ public:
                     currentIndex++;
                 }
                 else {
-                    cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                    myfile << "ERROR: Expected ';' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                    exit(1);
                 }
             }
             else {
-                cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                myfile << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                exit(1);
             }
         }
         
         else {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            myfile << "ERROR: Expected '(' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
     }
     
     void While()
     {
         if (seeSyntax) {
-            cout << "\t<While> ::= while ( <Condition> )  <Statement>\n";
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<While> ::= while ( <Condition> )  <Statement> whileend\n";
         }
         
         if (token[currentIndex] == "while") {
-
+            
+            addr = instrAddress;
+            gen_instr("LABEL", NULL);
             currentIndex++;
             
             if (token[currentIndex] == "(") {
@@ -579,72 +638,97 @@ public:
                 if (token[currentIndex] == ")") {
                     currentIndex++;
                     Statement();
-                 
+                    gen_instr("JUMP", addr);
+                    back_patch(instrAddress);
+                    if (token[currentIndex] == "whileend") {
+                        currentIndex++;
+                    }
+                    else
+                    {
+                        myfile << "ERROR: Expected 'whileend' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                        exit(1);
+                    }
                 }
                 else {
-                    cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                    myfile << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                    exit(1);
                 }
             }
             else {
-                cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                myfile << "ERROR: Expected '(' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                exit(1);
             }
         }
         
         else {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            myfile << "ERROR: Expected '(' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
     }
     
     void Condition()
     {
         if (seeSyntax) {
-            cout << "\t<Condition> ::= <Expression>  <Relop>  <Expression>\n";
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Condition> ::= <Expression>  <Relop>  <Expression>\n";
         }
         
         Expression();
         Relop();
         Expression();
         
-
-    
+        
+        
     }
     
     void Relop()
     {
-  
+        if(seeSyntax) {
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Relop> ::= == | ^= | > | < | => | =<";
+        }
+        
         if (token[currentIndex] == "==") {
             if (seeSyntax) {
-                cout << "\t<Relop> ::= ==" << endl;
+                myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Relop> ::= ==" << endl;
             }
+            gen_instr("EQU", NULL);
         }
         else if (token[currentIndex] == "^=") {
             if (seeSyntax) {
-                cout << "\t<Relop> ::= ^=" << endl;
+                myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Relop> ::= ^=" << endl;
             }
+            gen_instr("NEQ", NULL);
         }
         else if (token[currentIndex] == ">") {
             if (seeSyntax) {
-                cout << "\t<Relop> ::= >" << endl;
+                myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Relop> ::= >" << endl;
             }
+            gen_instr("GRE", NULL);
         }
         else if (token[currentIndex] == "<") {
             if (seeSyntax) {
-                cout << "\t<Relop> ::= <" << endl;
+                myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Relop> ::= <" << endl;
             }
+            gen_instr("LES", NULL);
         }
-        else if (token[currentIndex] == ">=") {
+        else if (token[currentIndex] == "=>") {
             if (seeSyntax) {
-                cout << "\t<Relop> ::= >=" << endl;
+                myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Relop> ::= =>" << endl;
             }
+            gen_instr("GEQ", NULL);
         }
-        else if (token[currentIndex] == "<=") {
+        else if (token[currentIndex] == "=<") {
             if (seeSyntax) {
-                cout << "\t<Relop> ::= <=" << endl;
+                myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Relop> ::= =<" << endl;
             }
+            gen_instr("LEQ", NULL);
         }
         else {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            myfile << "ERROR: Expected '==','>','<','^=','=>','=<' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
+        
+        //push_jumpstack(instrAddress);
+        gen_instr("JUMPZ", NULL);
         
         currentIndex++;
     }
@@ -652,7 +736,7 @@ public:
     void Expression()
     {
         if (seeSyntax) {
-            cout << "\t<Expression> ::= <Term> <ExpressionPrime>\n";
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Expression> ::= <Term> <ExpressionPrime>\n";
         }
         
         Term();
@@ -662,13 +746,24 @@ public:
     void ExpressionPrime()
     {
         if (seeSyntax) {
-            cout << "\t<ExpressionPrime> ::= + <Term> <ExpressionPrime> | - <Term> <ExpressionPrime> | <Empty>" << endl;
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<ExpressionPrime> ::= + <Term> <ExpressionPrime> | - <Term> <ExpressionPrime> | <Empty>" << endl;
         }
         
-        if (token[currentIndex] == "+" || token[currentIndex] == "-") {
+        if (token[currentIndex] == "+") {
+            currentIndex++;
+            Term();
+            gen_instr("ADD", NULL);
+            ExpressionPrime();
+        }
+        else if (token[currentIndex] == "-") {
             currentIndex++;
             Term();
             ExpressionPrime();
+        }
+        else if(tokenType[currentIndex] == "identifer" || tokenType[currentIndex] == "keyword")
+        {
+            myfile << "ERROR: expected a token on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
         
         else {
@@ -679,7 +774,7 @@ public:
     void Term()
     {
         if (seeSyntax) {
-            cout << "\t<Term> ::= <Factor> <TermPrime>" << endl;
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Term> ::= <Factor> <TermPrime>" << endl;
         }
         
         Factor();
@@ -689,17 +784,24 @@ public:
     void TermPrime()
     {
         if (seeSyntax) {
-            cout << "\t<TermPrime> ::= * <Factor> <TermPrime> | / <Factor> <TermPrime> | <Empty>" << endl;
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<TermPrime> ::= * <Factor> <TermPrime> | / <Factor> <TermPrime> | <Empty>" << endl;
         }
         
-        if (token[currentIndex] == "*" || token[currentIndex] == "/") {
+        if (token[currentIndex] == "*") {
+            currentIndex++;
+            Factor();
+            gen_instr("MUL", NULL);
+            TermPrime();
+        }
+        else if(token[currentIndex] == "/") {
             currentIndex++;
             Factor();
             TermPrime();
         }
         else if(tokenType[currentIndex] == "identifer" || tokenType[currentIndex] == "keyword")
         {
-            cout << "ERROR expected a a token " << tokenLineNum[currentIndex];
+            myfile << "ERROR: expected a token on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
         else {
             Empty();
@@ -709,47 +811,93 @@ public:
     void Factor()
     {
         if (seeSyntax) {
-            cout << "\t<Factor> ::= - <Primary> | <Primary>" << endl;
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Factor> ::= - <Primary> | <Primary>" << endl;
         }
         
         if (token[currentIndex] == "-") {
             currentIndex++;
             Primary();
         }
-        else if (tokenType[currentIndex] == "identifier" || tokenType[currentIndex] == "keyword" )
-        {
+        else if (tokenType[currentIndex] == "identifier") {
             
         }
+        else if (tokenType[currentIndex] == "keyword" || tokenType[currentIndex] == "integer" || tokenType[currentIndex] == "real" || tokenType[currentIndex] == "separator" || tokenType[currentIndex] == "operator")
+        {
+            Primary();
+        }
         else {
-            cout << "ERROR ON: " << tokenLineNum[currentIndex];
+            myfile << "ERROR: invalid input on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
         }
     }
     
     void Primary()
     {
         if (seeSyntax) {
-            cout << "\t<Primary> ::= <Identifier> | <Integer> | <Identifier> ( <IDs> ) | ( <Expression> ) | <Real> | true | false" << endl;
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Primary> ::= <Identifier> | <Integer> | <Identifier> ( <IDs> ) | ( <Expression> ) | <Real> | true | false" << endl;
         }
         
-        if (token[currentIndex] == "(") {
+        if(tokenType[currentIndex] == "identifier") {
             currentIndex++;
+            
+            if (token[currentIndex] == "(") {
+                currentIndex++;
+                IDs();
+                
+                if (token[currentIndex] == ")") {
+                    currentIndex++;
+                }
+                
+                else {
+                    myfile << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                    exit(1);
+                }
+            }
+            else {
+                Empty();
+            }
+        }
+        else if (tokenType[currentIndex] == "integer") {
+            currentIndex++;
+        }
+        else if (token[currentIndex] == "(") {
+            currentIndex++;
+            Expression();
             
             if (token[currentIndex] == ")") {
                 currentIndex++;
+                
             }
-            
             else {
-                cout << "ERROR ON: " << tokenLineNum[currentIndex];
+                myfile << "ERROR: Expected ')' on line " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                exit(1);
             }
         }
+        
+        else if (tokenType[currentIndex] == "real") {
+            currentIndex++;
+            
+        }
+        
+        else if (token[currentIndex] == "true") {
+            currentIndex++;
+            
+        }
+        
+        else if (token[currentIndex] == "false") {
+            currentIndex++;
+            
+        }
+        
         else {
-            Empty();
+            myfile << "ERROR: missing '<Identifer>', 'Integer', '<Expression>', or '<Qualifier>' on line: " << tokenLineNum[currentIndex] << "Token: " << token[currentIndex] << "Lexeme: " << tokenType[currentIndex];
+            exit(1);
         }
     }
     
     void Empty()
     {
-        if(seeSyntax) {cout << "\t<Empty> ::= Epsilon" << endl; }
+        if(seeSyntax) {myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Empty> ::= Epsilon" << endl; }
     }
     
     void errorHandler(int type)
@@ -757,6 +905,41 @@ public:
         
     }
     
+    void gen_instr(string op, int operand) {  //create instruction for instruction table
+        instrTable[instrAddress].address = instrAddress;
+        instrTable[instrAddress].operand = operand;
+        instrTable[instrAddress].op = op;
+        instrAddress++;
+    };
+    
+    void back_patch(int jump_addr) {
+        
+        
+        if (!jumpstack.empty()) {
+            addr = jumpstack.top();
+            jumpstack.pop();
+            instrTable[instrAddress].operand = jump_addr;
+        }
+        else {
+            cout << "Error: Stack came up empty." << endl;
+           
+            
+        }
+    }
+    
+    int get_addr(string lex) {            //takes a string and returns the address from the symbol table
+        int addr = 0;
+        int i = 0;
+        
+        while (i < symbCount) {
+            if (symbolTable[i] == lex) {
+                addr = i + memAddr;
+            }
+            
+            i++;
+        }
+        return addr;
+    }
     
     
 private:
@@ -767,6 +950,7 @@ private:
     int currentIndex;
     int state;
     bool seeSyntax;
+    int symbCount;
 };
 
 #endif /* SyntaxAnalyzer_h */
