@@ -20,9 +20,10 @@
 
 ofstream myfile;
 InstructionTable instrTable[1000]; // creates instruction table
-int instrAddress = 0; // index for instrTable
+int instrAddress = 1; // index for instrTable
 int addr = 0; // global
 int memAddr = 5000;
+
 stack <int> jumpstack;
 
 string symbolTable[1000];
@@ -676,7 +677,7 @@ public:
         Relop();
         Expression();
         
-        
+        jumpstack.push(instrAddress);
         
     }
     
@@ -819,7 +820,7 @@ public:
             Primary();
         }
         else if (tokenType[currentIndex] == "identifier") {
-            
+            Primary();
         }
         else if (tokenType[currentIndex] == "keyword" || tokenType[currentIndex] == "integer" || tokenType[currentIndex] == "real" || tokenType[currentIndex] == "separator" || tokenType[currentIndex] == "operator")
         {
