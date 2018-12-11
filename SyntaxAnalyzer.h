@@ -16,11 +16,20 @@
 #include <vector>
 #include <stdlib.h>
 #include "InstructionTable.h"
+#include "SymbolTable.h"
+#include <stack>
 
 ofstream myfile;
 InstructionTable instrTable[1000]; // creates instruction table
-int instrAddress = 0; // index for instrTable
+int instrAddress = 1; // index for instrTable
 int addr = 0; // global
+int memAddr = 5000;
+
+stack <int> jumpstack;
+
+string symbolTable[1000];
+string symbolType[1000];
+
 
 using namespace std;
 
@@ -31,16 +40,17 @@ public:
     // default constructor
     SyntaxAnalyzer()
     {
-        seeSyntax = true;
+        seeSyntax = false;
         currentIndex = 0;
         state = 0;
+        symbCount = 0;
     }
     
     // destructor
     ~SyntaxAnalyzer()
     {
         //Deletes allocated memory for the arrays
-  
+        
         
     }
     
@@ -71,7 +81,14 @@ public:
             OptDeclList();
             StatementList();
             
+            int i = 0;
+            myfile << endl << "Identifier" << "         " << "Memory Location" << "       " << "Type" << endl;
+            while (i < symbCount) {
+                myfile << symbolTable[i] << "             " << i+memAddr << "            " <<  symbolType[i]   << endl;
+                i++;
+            }
             myfile << "Completed" << endl;
+            cout << endl << " HELLO "<< instrTable[instrAddress-1].op << endl;
         }
         else {
             myfile << "ERROR: expected '$$' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
@@ -145,7 +162,7 @@ public:
         }
         
     }
-
+    
     void OptParaList()
     {
         if(seeSyntax)
@@ -224,11 +241,11 @@ public:
         }
         else if (token[currentIndex] == "boolean")
         {
-            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Qualifier> ::= boolean" << endl;
+            if(seeSyntax) {myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Qualifier> ::= boolean" << endl;}
         }
         else if(token[currentIndex] == "real")
         {
-            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Qualifier> ::= real" << endl;
+            if(seeSyntax) {myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Qualifier> ::= real" << endl;}
         }
         else
         {
@@ -329,6 +346,16 @@ public:
             {
                 myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<IDs> ::= <Identifier> | <Identifier>,<IDs>" << endl;
             }
+            
+            symbolTable[symbCount] = token[currentIndex];
+            symbolType[symbCount] = tokenType[currentIndex];
+            symbCount++;
+            
+            
+            
+            
+            
+            
             currentIndex++;
             if(token[currentIndex] == ",")
             {
@@ -434,7 +461,9 @@ public:
             if (token[currentIndex] == "=") {
                 currentIndex++;
                 Expression();
-
+                
+                gen_instr("POPM", get_addr(token[currentIndex-1]));
+                
                 
                 if (token[currentIndex] == ";") {
                     currentIndex++;
@@ -538,32 +567,33 @@ public:
             myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Print> ::= put ( <Expression> );\n";
         }
         
+        currentIndex++;
+        
+        
+        if (token[currentIndex] == "(") {
             currentIndex++;
-            
-            
-            if (token[currentIndex] == "(") {
+            Expression();
+            gen_instr("STDOUT", NULL);
+            if (token[currentIndex] == ")") {
                 currentIndex++;
-                Expression();
-                if (token[currentIndex] == ")") {
+                
+                if (token[currentIndex] == ";") {
                     currentIndex++;
-                    
-                    if (token[currentIndex] == ";") {
-                        currentIndex++;
-                    }
-                    else {
-                        myfile << "ERROR: expected ';' on line: "<<  tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
-                        exit(1);
-                    }
                 }
                 else {
-                    myfile << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                    myfile << "ERROR: expected ';' on line: "<<  tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
                     exit(1);
                 }
             }
             else {
-                myfile << "ERROR: Expected '(' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                myfile << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
                 exit(1);
             }
+        }
+        else {
+            myfile << "ERROR: Expected '(' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            exit(1);
+        }
     }
     
     void Scan()
@@ -657,8 +687,8 @@ public:
         Relop();
         Expression();
         
-
-    
+        jumpstack.push(instrAddress);
+        
     }
     
     void Relop()
@@ -666,7 +696,7 @@ public:
         if(seeSyntax) {
             myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Relop> ::= == | ^= | > | < | => | =<";
         }
-  
+        
         if (token[currentIndex] == "==") {
             if (seeSyntax) {
                 myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Relop> ::= ==" << endl;
@@ -800,7 +830,7 @@ public:
             Primary();
         }
         else if (tokenType[currentIndex] == "identifier") {
-            
+            Primary();
         }
         else if (tokenType[currentIndex] == "keyword" || tokenType[currentIndex] == "integer" || tokenType[currentIndex] == "real" || tokenType[currentIndex] == "separator" || tokenType[currentIndex] == "operator")
         {
@@ -820,15 +850,15 @@ public:
         
         if(tokenType[currentIndex] == "identifier") {
             currentIndex++;
-        
-            if (token[currentIndex] == "(") {
-            currentIndex++;
-            IDs();
             
+            if (token[currentIndex] == "(") {
+                currentIndex++;
+                IDs();
+                
                 if (token[currentIndex] == ")") {
                     currentIndex++;
                 }
-            
+                
                 else {
                     myfile << "ERROR: Expected ')' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
                     exit(1);
@@ -888,16 +918,46 @@ public:
     
     void gen_instr(string op, int operand) {  //create instruction for instruction table
         instrTable[instrAddress].address = instrAddress;
-        instrTable[instrAddress].operand = operand;
+        instrTable[instrAddress].operand = memAddr + instrAddress;
         instrTable[instrAddress].op = op;
+        
+        printInstr(instrAddress);
+        
         instrAddress++;
-        };
+        
+    };
     
     void back_patch(int jump_addr) {
-       // addr = pop_jumpstack();
-        instrTable[instrAddress].operand = jump_addr;
-    }
         
+        
+        if (!jumpstack.empty()) {
+            addr = jumpstack.top();
+            jumpstack.pop();
+            instrTable[instrAddress].operand = jump_addr;
+        }
+        else {
+            cout << "Error: Stack came up empty." << endl;
+            
+            
+        }
+    }
+    
+    int get_addr(string lex) {            //takes a string and returns the address from the symbol table
+        int addr = 0;
+        int i = 0;
+        
+        while (i < symbCount) {
+            if (symbolTable[i] == lex) {
+                addr = i + memAddr;
+            }
+            i++;
+        }
+        return addr;
+    }
+    
+    void printInstr(int insAddress) {
+        myfile << instrAddress << ". " << instrTable[instrAddress].op << " " << instrTable[instrAddress].operand << endl;
+    }
     
     
 private:
@@ -908,6 +968,7 @@ private:
     int currentIndex;
     int state;
     bool seeSyntax;
+    int symbCount;
 };
 
 #endif /* SyntaxAnalyzer_h */
