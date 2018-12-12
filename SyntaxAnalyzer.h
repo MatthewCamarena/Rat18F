@@ -879,6 +879,7 @@ public:
 			}
 		}
 		else if (tokenType[currentIndex] == "integer") {
+			gen_instr("PUSHI", stoi(token[currentIndex]));
 			currentIndex++;
 		}
 		else if (token[currentIndex] == "(") {
