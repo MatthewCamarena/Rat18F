@@ -16,7 +16,7 @@
 #include <vector>
 #include <stdlib.h>
 #include "InstructionTable.h"
-#include "SymbolTable.h"
+//#include "SymbolTable.h"
 #include <stack>
 
 ofstream myfile;
@@ -40,7 +40,7 @@ public:
     // default constructor
     SyntaxAnalyzer()
     {
-        seeSyntax = false;
+        seeSyntax =false;
         currentIndex = 0;
         state = 0;
         symbCount = 0;
@@ -62,15 +62,16 @@ public:
         token = LR.getTokens();
         tokenType = LR.getTokenType();
         tokenLineNum = LR.getTokenLineNum();
-        myfile.open ("SyntaxOutput.txt");
+        myfile.open("Output.txt");
         Rat18F();   //first rule of production
+        printInstr();
         myfile.close();
     }
     
     void Rat18F()
     {
-        if(seeSyntax) {
-            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Rat18F> ::= <Opt Function Definitions> $$ <Opt Declaration List> <Statement List> $$" << endl;
+        if (seeSyntax) {
+            myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << "tokenType[currentIndex]" << endl << "\t<Rat18F> ::= <Opt Function Definitions> $$ <Opt Declaration List> <Statement List> $$" << endl;
         }
         
         //First call optFunc
@@ -82,13 +83,15 @@ public:
             StatementList();
             
             int i = 0;
+            myfile << "Symbol Table:";
             myfile << endl << "Identifier" << "         " << "Memory Location" << "       " << "Type" << endl;
             while (i < symbCount) {
-                myfile << symbolTable[i] << "             " << i+memAddr << "            " <<  symbolType[i]   << endl;
+                myfile << symbolTable[i] << "                  " << i + memAddr << "                    " << "Integer" << endl;
                 i++;
             }
-            myfile << "Completed" << endl;
-            cout << endl << " HELLO "<< instrTable[instrAddress-1].op << endl;
+            myfile << endl;
+            myfile << "Instruction Table:" << endl;
+            
         }
         else {
             myfile << "ERROR: expected '$$' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
@@ -98,10 +101,10 @@ public:
     
     void OptFuncDef()
     {
-        if(seeSyntax) { myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Opt Function Definitions> ::= <Function Definitions> | <Empty>" << endl;}
+        if (seeSyntax) { myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Opt Function Definitions> ::= <Function Definitions> | <Empty>" << endl; }
         
         //check to see if first token name is called function
-        if(token[currentIndex] == "function")
+        if (token[currentIndex] == "function")
         {
             FuncDef();
         }
@@ -111,38 +114,38 @@ public:
         }
         else
         {
-            myfile << "ERROR: Expected 'function' or '$$' on line: " <<tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+            myfile << "ERROR: Expected 'function' or '$$' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
             exit(1);
         }
     }
     
     void FuncDef()
     {
-        if(seeSyntax)
+        if (seeSyntax)
         {
             myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Function Definitions> ::= <Function> | <Function><Function Definitions>" << endl;
         }
         // Keep calling while the next one is  a function to register all functions before main
-        while(token[currentIndex] == "function") Function();
+        while (token[currentIndex] == "function") Function();
     }
     
     void Function()
     {
-        if(seeSyntax)
+        if (seeSyntax)
         {
             myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Function> ::= function <Identifier> ( <Opt Parameter List> ) <Opt Declaration List> <Body>" << endl;
         }
         
         currentIndex++; // Move on to the next token
         
-        if(tokenType[currentIndex] == "identifier")
+        if (tokenType[currentIndex] == "identifier")
         {
             currentIndex++;
-            if(token[currentIndex] == "(")
+            if (token[currentIndex] == "(")
             {
                 currentIndex++;
                 OptParaList();
-                if(token[currentIndex] == ")")
+                if (token[currentIndex] == ")")
                 {
                     currentIndex++;
                     OptDeclList();
@@ -165,12 +168,12 @@ public:
     
     void OptParaList()
     {
-        if(seeSyntax)
+        if (seeSyntax)
         {
             myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Opt Parameter List> ::= <Parameter List> | <Empty>" << endl;
         }
         
-        if(tokenType[currentIndex] == "identifier") // there is a parameter in the function
+        if (tokenType[currentIndex] == "identifier") // there is a parameter in the function
         {
             ParaList();
         }
@@ -188,15 +191,15 @@ public:
     
     void ParaList()
     {
-        if(seeSyntax)
+        if (seeSyntax)
         {
             myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Parameter List> ::= <Parameter List> | <Empty>" << endl;
         }
         
-        if(tokenType[currentIndex] == "identifier")
+        if (tokenType[currentIndex] == "identifier")
         {
             Parameter();
-            if(token[currentIndex] == ",")
+            if (token[currentIndex] == ",")
             {
                 currentIndex++;
                 ParaList();
@@ -207,13 +210,13 @@ public:
     
     void Parameter()
     {
-        if(seeSyntax)
+        if (seeSyntax)
         {
             myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Parameter> ::= <IDs> : <Qualifier>" << endl;
         }
         IDs();
         
-        if(token[currentIndex] == ":")
+        if (token[currentIndex] == ":")
         {
             currentIndex++;
             Qualifier();
@@ -227,25 +230,25 @@ public:
     
     void Qualifier()
     {
-        if(seeSyntax)
+        if (seeSyntax)
         {
             myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Qualifier> ::= int | boolean | real" << endl;
         }
         
-        if(token[currentIndex] == "int") //see what the Qualifier is
+        if (token[currentIndex] == "int") //see what the Qualifier is
         {
-            if(seeSyntax)
+            if (seeSyntax)
             {
                 myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Qualifier> ::= int" << endl;
             }
         }
         else if (token[currentIndex] == "boolean")
         {
-            if(seeSyntax) {myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Qualifier> ::= boolean" << endl;}
+            if (seeSyntax) { myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Qualifier> ::= boolean" << endl; }
         }
-        else if(token[currentIndex] == "real")
+        else if (token[currentIndex] == "real")
         {
-            if(seeSyntax) {myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Qualifier> ::= real" << endl;}
+            if (seeSyntax) { myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Qualifier> ::= real" << endl; }
         }
         else
         {
@@ -258,16 +261,16 @@ public:
     
     void Body()
     {
-        if(seeSyntax)
+        if (seeSyntax)
         {
             myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Body> ::= { <Statement List> }" << endl;
         }
         
-        if(token[currentIndex] == "{")
+        if (token[currentIndex] == "{")
         {
             currentIndex++;
             StatementList();
-            if(token[currentIndex] == "}")
+            if (token[currentIndex] == "}")
             {
                 currentIndex++;
             }
@@ -277,7 +280,7 @@ public:
                 exit(1);
             }
         }
-        else{
+        else {
             myfile << "ERROR, expected '}' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
             exit(1);
         }
@@ -285,15 +288,15 @@ public:
     
     void OptDeclList()
     {
-        if(seeSyntax)
+        if (seeSyntax)
         {
             myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Opt Declaration List> ::= <Declaration List> | <Empty>" << endl;
         }
-        if(token[currentIndex] == "{")
+        if (token[currentIndex] == "{")
         {
             Empty();
         }
-        else if(token[currentIndex] == "int" || token[currentIndex] == "boolean" || token[currentIndex] == "real")
+        else if (token[currentIndex] == "int" || token[currentIndex] == "boolean" || token[currentIndex] == "real")
         {
             DeclList();
         }
@@ -306,16 +309,16 @@ public:
     
     void DeclList()
     {
-        if(seeSyntax)
+        if (seeSyntax)
         {
             myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Declaration List> ::= <Declaration>; | <Declaration>;<Declaration List>" << endl;
         }
         Declaration();
-        if(token[currentIndex] == ";")
+        if (token[currentIndex] == ";")
         {
             currentIndex++;
             
-            if(token[currentIndex] == "int" || token[currentIndex] == "boolean" || token[currentIndex] == "real")
+            if (token[currentIndex] == "int" || token[currentIndex] == "boolean" || token[currentIndex] == "real")
             {
                 DeclList();
             }
@@ -329,7 +332,7 @@ public:
     
     void Declaration()
     {
-        if(seeSyntax)
+        if (seeSyntax)
         {
             myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Declaration> ::= <Qualifier><IDs>" << endl;
         }
@@ -340,24 +343,28 @@ public:
     
     void IDs()
     {
-        if(tokenType[currentIndex] == "identifier" )
+        if (tokenType[currentIndex] == "identifier")
         {
-            if(seeSyntax)
+            if (seeSyntax)
             {
                 myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<IDs> ::= <Identifier> | <Identifier>,<IDs>" << endl;
             }
             
-            symbolTable[symbCount] = token[currentIndex];
-            symbolType[symbCount] = tokenType[currentIndex];
-            symbCount++;
+            //check to see if id is in the table
             
+            if (!dupli(token[currentIndex]))
+            {
+                symbolTable[symbCount] = token[currentIndex];
+                symbolType[symbCount] = tokenType[currentIndex];
+                symbCount++;
+            }
             
             
             
             
             
             currentIndex++;
-            if(token[currentIndex] == ",")
+            if (token[currentIndex] == ",")
             {
                 currentIndex++;
                 IDs();
@@ -376,12 +383,12 @@ public:
     
     void StatementList()
     {
-        if(seeSyntax)
+        if (seeSyntax)
         {
             myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Statement List> ::= <Statement> | <Statement> <Statement List>" << endl;
         }
         
-        while(token[currentIndex] == "if" || token[currentIndex] == "put" || token[currentIndex] == "while" || token[currentIndex] == "return" || tokenType[currentIndex] == "identifier" || token[currentIndex] == "get")
+        while (token[currentIndex] == "if" || token[currentIndex] == "put" || token[currentIndex] == "while" || token[currentIndex] == "return" || tokenType[currentIndex] == "identifier" || token[currentIndex] == "get")
         {
             Statement();
         }
@@ -390,7 +397,7 @@ public:
     
     void Statement()
     {
-        if(seeSyntax){
+        if (seeSyntax) {
             myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Statement> ::= <Compound> | <Assign> | <If> | <Return> | <Print> | <Scan> | <While>" << endl;
         }
         if (token[currentIndex] == "{") {
@@ -462,7 +469,7 @@ public:
                 currentIndex++;
                 Expression();
                 
-                gen_instr("POPM", get_addr(token[currentIndex-1]));
+                gen_instr("POPM", get_addr(token[currentIndex - 3]));
                 
                 
                 if (token[currentIndex] == ";") {
@@ -573,7 +580,9 @@ public:
         if (token[currentIndex] == "(") {
             currentIndex++;
             Expression();
-            gen_instr("STDOUT", NULL);
+            //cout << "HELLO" << endl << "STDOUT?";
+            //system("PAUSE");
+            gen_instr("STDOUT", -99999);
             if (token[currentIndex] == ")") {
                 currentIndex++;
                 
@@ -581,7 +590,7 @@ public:
                     currentIndex++;
                 }
                 else {
-                    myfile << "ERROR: expected ';' on line: "<<  tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
+                    myfile << "ERROR: expected ';' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
                     exit(1);
                 }
             }
@@ -607,6 +616,8 @@ public:
         if (token[currentIndex] == "(") {
             currentIndex++;
             IDs();
+            gen_instr("STDIN", -99999);
+            gen_instr("POPM", get_addr(token[currentIndex - 1]));
             
             if (token[currentIndex] == ")") {
                 currentIndex++;
@@ -640,7 +651,7 @@ public:
         if (token[currentIndex] == "while") {
             
             addr = instrAddress;
-            gen_instr("LABEL", NULL);
+            gen_instr("LABEL", -99999);
             currentIndex++;
             
             if (token[currentIndex] == "(") {
@@ -687,13 +698,33 @@ public:
         Relop();
         Expression();
         
+        if (token[currentIndex-2] == "<") { //-99999 to not display address
+            gen_instr("LES", -99999);
+        }
+        else if (token[currentIndex-2] == ">") {
+            gen_instr("GRE", -99999);
+        }
+        else if (token[currentIndex-2] == "==") {
+            gen_instr("EQU", -99999);
+        }
+        else if (token[currentIndex-2] == "^=") {
+            gen_instr("NEQ", -99999);
+        }
+        else if (token[currentIndex-2] == "=>") {
+            gen_instr("GEQ", -99999);
+        }
+        else if (token[currentIndex-2] == "=<") {
+            gen_instr("LEQ", -99999);
+        }
+        
         jumpstack.push(instrAddress);
+        gen_instr ("JUMPZ", -99999);
         
     }
     
     void Relop()
     {
-        if(seeSyntax) {
+        if (seeSyntax) {
             myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Relop> ::= == | ^= | > | < | => | =<";
         }
         
@@ -701,45 +732,37 @@ public:
             if (seeSyntax) {
                 myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Relop> ::= ==" << endl;
             }
-            gen_instr("EQU", NULL);
         }
         else if (token[currentIndex] == "^=") {
             if (seeSyntax) {
                 myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Relop> ::= ^=" << endl;
             }
-            gen_instr("NEQ", NULL);
         }
         else if (token[currentIndex] == ">") {
             if (seeSyntax) {
                 myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Relop> ::= >" << endl;
             }
-            gen_instr("GRE", NULL);
         }
         else if (token[currentIndex] == "<") {
             if (seeSyntax) {
                 myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Relop> ::= <" << endl;
             }
-            gen_instr("LES", NULL);
         }
         else if (token[currentIndex] == "=>") {
             if (seeSyntax) {
                 myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Relop> ::= =>" << endl;
             }
-            gen_instr("GEQ", NULL);
         }
         else if (token[currentIndex] == "=<") {
             if (seeSyntax) {
                 myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Relop> ::= =<" << endl;
             }
-            gen_instr("LEQ", NULL);
         }
         else {
             myfile << "ERROR: Expected '==','>','<','^=','=>','=<' on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
             exit(1);
         }
         
-        //push_jumpstack(instrAddress);
-        gen_instr("JUMPZ", NULL);
         
         currentIndex++;
     }
@@ -763,7 +786,7 @@ public:
         if (token[currentIndex] == "+") {
             currentIndex++;
             Term();
-            gen_instr("ADD", NULL);
+            gen_instr("ADD", -99999);
             ExpressionPrime();
         }
         else if (token[currentIndex] == "-") {
@@ -771,7 +794,7 @@ public:
             Term();
             ExpressionPrime();
         }
-        else if(tokenType[currentIndex] == "identifer" || tokenType[currentIndex] == "keyword")
+        else if (tokenType[currentIndex] == "identifer" || tokenType[currentIndex] == "keyword")
         {
             myfile << "ERROR: expected a token on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
             exit(1);
@@ -801,15 +824,15 @@ public:
         if (token[currentIndex] == "*") {
             currentIndex++;
             Factor();
-            gen_instr("MUL", NULL);
+            gen_instr("MUL", -99999);
             TermPrime();
         }
-        else if(token[currentIndex] == "/") {
+        else if (token[currentIndex] == "/") {
             currentIndex++;
             Factor();
             TermPrime();
         }
-        else if(tokenType[currentIndex] == "identifer" || tokenType[currentIndex] == "keyword")
+        else if (tokenType[currentIndex] == "identifer" || tokenType[currentIndex] == "keyword")
         {
             myfile << "ERROR: expected a token on line: " << tokenLineNum[currentIndex] << " Token: " << token[currentIndex] << " Lexeme: " << tokenType[currentIndex] << " ";
             exit(1);
@@ -848,7 +871,9 @@ public:
             myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Primary> ::= <Identifier> | <Integer> | <Identifier> ( <IDs> ) | ( <Expression> ) | <Real> | true | false" << endl;
         }
         
-        if(tokenType[currentIndex] == "identifier") {
+        if (tokenType[currentIndex] == "identifier") {
+            
+            gen_instr("PUSHM", get_addr(token[currentIndex]));
             currentIndex++;
             
             if (token[currentIndex] == "(") {
@@ -869,6 +894,7 @@ public:
             }
         }
         else if (tokenType[currentIndex] == "integer") {
+            gen_instr("PUSHI", stoi(token[currentIndex]));
             currentIndex++;
         }
         else if (token[currentIndex] == "(") {
@@ -908,7 +934,7 @@ public:
     
     void Empty()
     {
-        if(seeSyntax) {myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Empty> ::= Epsilon" << endl; }
+        if (seeSyntax) { myfile << "Token: " << token[currentIndex] << endl << "Lexeme: " << tokenType[currentIndex] << endl << "\t<Empty> ::= Epsilon" << endl; }
     }
     
     void errorHandler(int type)
@@ -918,14 +944,17 @@ public:
     
     void gen_instr(string op, int operand) {  //create instruction for instruction table
         instrTable[instrAddress].address = instrAddress;
-        instrTable[instrAddress].operand = memAddr + instrAddress;
+            instrTable[instrAddress].operand = operand;
+        
         instrTable[instrAddress].op = op;
         
-        printInstr(instrAddress);
+        //printInstr(instrAddress);
         
         instrAddress++;
         
     };
+    
+    
     
     void back_patch(int jump_addr) {
         
@@ -933,7 +962,7 @@ public:
         if (!jumpstack.empty()) {
             addr = jumpstack.top();
             jumpstack.pop();
-            instrTable[instrAddress].operand = jump_addr;
+            instrTable[addr].operand = jump_addr;
         }
         else {
             cout << "Error: Stack came up empty." << endl;
@@ -942,23 +971,46 @@ public:
         }
     }
     
-    int get_addr(string lex) {            //takes a string and returns the address from the symbol table
+    int get_addr(string ok) {            //takes a string and returns the address from the symbol table
         int addr = 0;
         int i = 0;
         
-        while (i < symbCount) {
-            if (symbolTable[i] == lex) {
+        while (i < symbCount+1) {
+            
+            if (symbolTable[i] == ok) {
                 addr = i + memAddr;
             }
             i++;
         }
+        
+        
         return addr;
     }
     
-    void printInstr(int insAddress) {
-        myfile << instrAddress << ". " << instrTable[instrAddress].op << " " << instrTable[instrAddress].operand << endl;
+    void printInstr() {
+        for(int i = 1; i < instrAddress;i++){
+            myfile << i << ". " << instrTable[i].op << " ";
+            if(instrTable[i].operand != -99999) {
+                myfile << instrTable[i].operand << endl;
+            }
+            else {
+                myfile << endl;
+            }
+        }
     }
     
+    bool dupli(string lex)
+    {
+        bool in = 0;
+        int i = 0;
+        while (i < symbCount + 1)
+        {
+            if (symbolTable[i] == lex)
+                in = 1;
+            i++;
+        }
+        return in;
+    }
     
 private:
     int tokenCount;
